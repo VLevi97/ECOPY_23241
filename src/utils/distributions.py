@@ -50,6 +50,12 @@ class LogisticDistribution:
         return [self.mean(), self.variance(), self.skewness(), self.ex_kurtosis()]
 
 
+
+
+
+
+
+
 import random
 import math
 from scipy.special import gamma, gammainc, gammaincinv
@@ -87,13 +93,13 @@ class ChiSquaredDistribution:
             raise Exception("Moment undefined")
 
     def variance(self):
-        if self.dof >= 2:
+        if self.dof > 2:
             return 2 * self.dof
         else:
             raise Exception("Moment undefined")
 
     def skewness(self):
-        if self.dof > 2:
+        if self.dof > 3:
             return math.sqrt(8 / self.dof)
         else:
             raise Exception("Moment undefined")
