@@ -3,7 +3,7 @@ import pandas as pd
 import random
 from pandas.testing import assert_frame_equal, assert_series_equal
 import src.weekly.weekly_test_4 as wt
-from src.weekly.weekly_test_2 import ParetoDistribution
+from src.utils.weekly_test_2 import ParetoDistribution
 
 class TestWeekly4:
     refdata = pd.read_csv('../../data/Euro_2012_stats_TEAM.csv')

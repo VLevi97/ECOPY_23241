@@ -1,5 +1,5 @@
 from pytest import approx
-from src.weekly import weekly_test_2 as wt
+from src.utils import weekly_test_2 as wt
 import random
 
 

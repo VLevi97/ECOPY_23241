@@ -1,7 +1,70 @@
 import random
 import math
+import typing
+import scipy.special
 from typing import List
 import pyerf
+
+class NormalDistribution:
+    def __init__(self, rand, loc, scale):
+        self.rand = rand
+        self.loc = loc
+        self.scale = scale
+
+    def pdf(self, x):
+        exponent = -0.5 * (((x - self.loc) / self.scale) ** 2)
+        normalization = 1 / (self.scale * math.sqrt(2 * math.pi))
+        probability_density = normalization * math.exp(exponent)
+        return probability_density
+
+    def cdf(self, x):
+        z = (x - self.loc) / (self.scale * math.sqrt(2))
+        cumulative_probability = 0.5 * (1 + math.erf(z))
+        return cumulative_probability
+
+    def ppf(self, p):
+        if self.scale <= 0:
+            raise ValueError("A szórásnak pozitívnak kell lennie.")
+        if p < 0 or p > 1:
+            raise ValueError("A valószínűségnek 0 és 1 között kell lennie.")
+
+        z = math.erfinv(2 * p - 1) * math.sqrt(2)
+        x = z * self.scale + self.loc
+        return x
+
+    def gen_rand(self):
+        if self.scale <= 0:
+            raise ValueError("A szórásnak pozitívnak kell lennie.")
+
+        z = random.normalvariate(0, 1)
+        x = z * self.scale + self.loc
+        return x
+
+    def mean(self):
+        return self.loc
+
+    def median(self):
+        return self.loc
+
+    def variance(self):
+        if self.scale is None:
+            raise Exception("Moment undefined")
+        return self.scale ** 2
+
+    def skewness(self):
+        return 0
+
+    def ex_kurtosis(self):
+        return 0
+
+    def mvsk(self):
+        mean = self.loc
+        variance = self.scale ** 2
+        std_dev = math.sqrt(variance)
+        skewness = 0
+        kurtosis = 0
+
+        return [mean, std_dev, skewness, kurtosis]
 
 
 
@@ -52,10 +115,6 @@ class LogisticDistribution:
 
 
 
-
-
-
-
 import random
 import math
 from scipy.special import gamma, gammainc, gammaincinv
@@ -93,39 +152,163 @@ class ChiSquaredDistribution:
             raise Exception("Moment undefined")
 
     def variance(self):
-        if self.dof > 2:
+        if self.dof:
             return 2 * self.dof
         else:
             raise Exception("Moment undefined")
 
     def skewness(self):
-        if self.dof > 3:
+        if self.dof:
             return math.sqrt(8 / self.dof)
         else:
             raise Exception("Moment undefined")
 
     def ex_kurtosis(self):
-        if self.dof > 4:
+        if self.dof:
             return 12 / self.dof
         else:
             raise Exception("Moment undefined")
 
+
     def mvsk(self):
-        moments = []
-        if self.dof > 0:
-            moments.append(self.mean())
-        else:
-            raise Exception("Moment undefined")
-
-        if self.dof > 1:
-            moments.append(self.variance())
-        else:
-            raise Exception("Moment undefined")
-
-        if self.dof > 3:
-            moments.append(self.skewness())
-            moments.append(self.ex_kurtosis())
-        else:
-            raise Exception("Moment undefined")
-
+        moments = [self.mean(), self.variance(), self.skewness(), self.ex_kurtosis()]
         return moments
+
+
+class UniformDistribution:
+    def __init__(self, rand, a, b):
+        self.rand = rand
+        self.a = a
+        self.b = b
+
+    def pdf(self, x):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+
+        if x < self.a or x > self.b:
+            return 0
+        else:
+            interval_length = self.b - self.a
+            probability_density = 1 / interval_length
+            return probability_density
+
+    def cdf(self, x):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+
+        if x < self.a:
+            return 0
+        elif x >= self.b:
+            return 1
+        else:
+            interval_length = self.b - self.a
+            cumulative_probability = (x - self.a) / interval_length
+            return cumulative_probability
+
+    def ppf(self, p):
+        if self.a >= self.b:
+            raise ValueError("Az alsó határnak kisebbnek kell lennie, mint a felső határ.")
+        if p < 0 or p > 1:
+            raise ValueError("A valószínűségnek 0 és 1 között kell lennie.")
+
+        x = self.a + p * (self.b - self.a)
+        return x
+
+    def gen_rand(self):
+        x = random.uniform(self.a, self.b)
+        return x
+
+    def mean(self):
+        return (self.a + self.b) / 2
+
+    def median(self):
+        return (self.a + self.b) / 2
+
+    def variance(self):
+        return ((self.b - self.a) ** 2) / 12
+
+    def skewness(self):
+        return 0
+
+    def ex_kurtosis(self):
+        return -6 / 5
+
+    def mvsk(self):
+        if self.a is None or self.b is None:
+            raise Exception("Moments undefined")
+
+        mean = (self.a + self.b) / 2
+        variance = ((self.b - self.a) ** 2) / 12
+        skewness = self.skewness()
+        kurtosis = -6 / 5
+
+        return [mean, variance, skewness, kurtosis]
+
+
+
+
+
+class CauchyDistribution:
+    def __init__(self, rand, loc, scale):
+        self.rand = rand
+        self.loc = loc
+        self.scale = scale
+
+    def pdf(self, x):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        denominator = math.pi * self.scale * (1 + ((x - self.loc) / self.scale) ** 2)
+        probability_density = 1 / denominator
+        return probability_density
+
+    def cdf(self, x):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        cumulative_probability = 0.5 + math.atan((x - self.loc) / self.scale) / math.pi
+        return cumulative_probability
+
+    def ppf(self, p):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+        if p < 0 or p > 1:
+            raise ValueError("A valószínűségnek 0 és 1 között kell lennie.")
+
+        x = self.loc + self.scale * math.tan(math.pi * (p - 0.5))
+        return x
+
+    def gen_rand(self):
+        if self.scale <= 0:
+            raise ValueError("A skála értékének pozitívnak kell lennie.")
+
+        z = random.uniform(0, 1)
+        x = self.loc + self.scale * math.tan(math.pi * (z - 0.5))
+        return x
+
+    def mean(self):
+        raise Exception('Moments undefined')
+
+    def median(self):
+        return self.loc
+
+    def variance(self):
+        raise Exception('Moments undefined')
+
+    def skewness(self):
+        raise Exception('Moments undefined')
+
+    def ex_kurtosis(self):
+        raise Exception('Moments undefined')
+
+    def mvsk(self):
+        mean = self.mean()
+        variance = self.variance()
+        skewness = self.skewness()
+        ex_kurtosis = self.ex_kurtosis()
+
+        try:
+            return [mean, variance, skewness, ex_kurtosis]
+        except:
+            raise Exception("Moments undefined")
+

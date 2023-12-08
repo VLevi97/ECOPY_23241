@@ -8,7 +8,7 @@ from pytest import approx
 
 from src.utils.distributions import UniformDistribution, LogisticDistribution, CauchyDistribution, \
     ChiSquaredDistribution
-from src.weekly.weekly_test_2 import LaplaceDistribution
+from src.utils.weekly_test_2 import LaplaceDistribution
 
 
 class TestWeekly5:

@@ -1,5 +1,6 @@
 import random
 import math
+from math import sqrt, pi
 
 
 class LaplaceDistribution:
@@ -27,9 +28,10 @@ class LaplaceDistribution:
         else:
             return self.loc - self.scale * math.log(2 - 2 * p)
 
-    def gen_random(self) -> float:
+    def gen_rand(self):
         u = self.rand.random()
-        return self.loc - self.scale * math.copysign(math.log(1 - 2 * u), self.rand.random() - 0.5)
+        return self.ppf(u)
+
 
     def mean(self) -> float:
         return self.loc
@@ -43,17 +45,9 @@ class LaplaceDistribution:
     def ex_kurtosis(self) -> float:
         return 3.0
 
-    def mvsk(self) -> List[float]:
+    def mvsk(self):
         return [self.mean(), self.variance(), self.skewness(), self.ex_kurtosis()]
 
-
-
-
-
-
-
-import random
-import math
 
 class ParetoDistribution:
     def __init__(self, rand, scale, shape):
@@ -74,33 +68,41 @@ class ParetoDistribution:
     def ppf(self, p):
         if p < 0 or p > 1:
             raise ValueError("p must be between 0 and 1")
-        return self.scale / (1 - p**(1/self.shape))
+        return self.scale / pow(1 - p, 1/self.shape)
 
-    def gen_random(self):
+    def gen_rand(self):
         u = self.rand.random()
         return self.ppf(u)
 
     def mean(self):
         if self.shape <= 1:
             raise Exception("Moment undefined")
+
         return (self.shape * self.scale) / (self.shape - 1)
 
     def variance(self):
         if self.shape <= 2:
             raise Exception("Moment undefined")
-        return (self.scale**2 * self.shape) / ((self.shape - 1)**2 * (self.shape - 2))
+        return (self.scale ** 2 * self.shape) / ((self.shape - 1) ** 2 * (self.shape - 2))
 
     def skewness(self):
         if self.shape <= 3:
-            raise Exception("Moment undefined")
-        return (2 * (1 + self.shape)) / ((self.shape - 3) * math.sqrt(self.shape - 2))
+            raise Exception("Skewness undefined")
+        return (2 * (1 + self.shape)) / (self.shape - 3) * ((self.shape - 2) / self.shape) ** 0.5
 
     def ex_kurtosis(self):
         if self.shape <= 4:
-            raise Exception("Moment undefined")
-        return 6 * ((self.shape**3 + 3 * self.shape**2 - 6) / ((self.shape - 4) * (self.shape - 3)))
+            raise Exception("Excess Kurtosis undefined")
+        return 6 * (self.shape ** 3 + self.shape ** 2 - 6 * self.shape - 2) / \
+            (self.shape * (self.shape - 3) * (self.shape - 4))
 
     def mvsk(self):
         if self.shape <= 4:
             raise Exception("Moment undefined")
-        return [self.mean(), self.variance(), self.skewness(), self.ex_kurtosis()]
+
+        mean = self.mean()
+        variance = self.variance()
+        skewness = self.skewness()
+        ex_kurtosis = self.ex_kurtosis()
+
+        return [mean, variance, skewness, ex_kurtosis]
